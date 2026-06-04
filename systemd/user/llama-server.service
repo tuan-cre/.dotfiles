@@ -1,0 +1,25 @@
+[Unit]
+Description=llama.cpp server - Qwen3.6-35B-A3B
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+WorkingDirectory=%h/llama-cpp-turboquant
+ExecStart=%h/llama-cpp-turboquant/build/bin/llama-server \
+  -m %h/llama-cpp-turboquant/models/Qwen3.6-35B-A3B-UD-IQ3_XXS.gguf \
+  -ngl 40 \
+  --n-cpu-moe 30 \
+  --cache-type-k turbo4 \
+  --cache-type-v turbo4 \
+  --flash-attn auto \
+  --reasoning off \
+  -c 32768 \
+  --cont-batching \
+  --threads 8 --threads-batch 8 \
+  --port 8080
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

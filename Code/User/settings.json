@@ -1,0 +1,11 @@
+{
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "python.defaultInterpreterPath": "/bin/python",
+    "workbench.colorTheme": "Visual Studio Dark",
+    "explorer.confirmDelete": false,
+    "dart.flutterSdkPath": "/home/neon/flutter",
+    "dart.flutterCustomEmulators": [],
+    "security.workspace.trust.untrustedFiles": "open"
+}

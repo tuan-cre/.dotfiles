@@ -1,0 +1,65 @@
+# organize configuration file
+# Sorts ~/Downloads into proper home directories
+
+rules:
+  - name: "Images → Pictures"
+    locations: ~/Downloads
+    subfolders: true
+    filters:
+      - extension: [jpg, jpeg, png, gif, bmp, svg, webp, ico, avif]
+    actions:
+      - move: ~/Pictures/
+
+  - name: "Videos → Videos"
+    locations: ~/Downloads
+    subfolders: true
+    filters:
+      - extension: [mp4, mkv, avi, mov, webm, m4v, flv, wmv]
+    actions:
+      - move: ~/Videos/
+
+  - name: "Music → Music"
+    locations: ~/Downloads
+    subfolders: true
+    filters:
+      - extension: [mp3, flac, wav, aac, ogg, m4a, wma, opus]
+    actions:
+      - move: ~/Music/
+
+  - name: "Documents → Documents"
+    locations: ~/Downloads
+    subfolders: true
+    filters:
+      - extension:
+          - pdf
+          - docx
+          - doc
+          - xlsx
+          - xls
+          - pptx
+          - ppt
+          - txt
+          - odt
+          - ods
+          - csv
+          - md
+          - epub
+    actions:
+      - move: ~/Documents/
+
+  - name: "Archives → Downloads/Archives"
+    locations: ~/Downloads
+    subfolders: true
+    filters:
+      - extension: [zip, tar.gz, tar, gz, bz2, xz, 7z, rar, tgz]
+    actions:
+      - move: ~/Downloads/Archives/
+
+  - name: "ISOs → Downloads/ISOs"
+    locations: ~/Downloads
+    subfolders: true
+    filters:
+      - extension: [iso, img, qcow2]
+    actions:
+      - move: ~/Downloads/ISOs/
+

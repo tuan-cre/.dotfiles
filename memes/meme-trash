@@ -1,0 +1,27 @@
+#!/bin/bash
+# meme-trash — soft-delete a meme (moves to .trash/ instead of permanent delete)
+# The file stays intact, just hidden from the meme picker.
+# Run meme-trash-list to see trashed files, or mv them back from .trash/ to restore.
+
+MEME_DIR="$HOME/.local/share/memes"
+TRASH_DIR="$MEME_DIR/.trash"
+mkdir -p "$TRASH_DIR"
+
+file="$1"
+if [ -z "$file" ]; then
+    echo "Usage: $0 <filename>"
+    exit 1
+fi
+
+# Accept either relative filename or full path
+if [[ "$file" != */* ]]; then
+    file="$MEME_DIR/$file"
+fi
+
+if [ ! -f "$file" ]; then
+    notify-send "Meme Collection" "File not found: $(basename "$file")"
+    exit 1
+fi
+
+mv "$file" "$TRASH_DIR/"
+notify-send "Meme Collection" "Trashed: $(basename "$file")"

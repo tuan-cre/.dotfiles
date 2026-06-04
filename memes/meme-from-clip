@@ -1,0 +1,20 @@
+#!/bin/bash
+# meme-from-clip — save the current clipboard image to your meme collection
+# Only captures if clipboard contains an image (ignores text)
+
+MEME_DIR="$HOME/.local/share/memes"
+mkdir -p "$MEME_DIR"
+
+timestamp=$(date +%s)
+file="meme_$timestamp.png"
+
+# Only grab image data from clipboard; fail silently on text/empty
+wl-paste --type image/png > "$MEME_DIR/$file" 2>/dev/null
+
+if [ ! -s "$MEME_DIR/$file" ]; then
+    rm -f "$MEME_DIR/$file"
+    notify-send "Meme Collection" "Clipboard doesn't contain an image"
+    exit 1
+fi
+
+notify-send -i "$MEME_DIR/$file" "Meme Collection" "Saved: $file"

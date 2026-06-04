@@ -1,0 +1,25 @@
+#!/bin/bash
+# meme-rename — rename a meme file interactively
+# Usage: meme-rename <filename>
+
+file="$1"
+
+if [ -z "$file" ] || [ ! -f "$file" ]; then
+    echo "Usage: $0 <file>"
+    exit 1
+fi
+
+ext="${file##*.}"
+echo ""
+read -e -p " New name: " -r name </dev/tty
+
+if [ -z "$name" ]; then
+    notify-send "Meme Collection" "Rename cancelled"
+    exit 0
+fi
+
+# Sanitize: replace spaces with underscores
+name="${name// /_}"
+
+mv -i "$file" "${name}.${ext}" && \
+    notify-send -i "${name}.${ext}" "Meme Collection" "Renamed → ${name}.${ext}"

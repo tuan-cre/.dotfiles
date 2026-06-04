@@ -1,0 +1,32 @@
+[General]
+LastUsedVersion=210800
+
+[MainWindow]
+MenuBar=Disabled
+
+[Recent Files]
+File1[$e]=$HOME/.local/share/memes/meme_1780479990.jpg
+File10[$e]=$HOME/Pictures/Wallpapers/2026-01-14-125006_hyprshot_upscaled_edited$$1.png
+File2[$e]=$HOME/Pictures/____ _.jpg
+File3[$e]=$HOME/Pictures/xubuntu.png
+File4[$e]=$HOME/Pictures/Gemini_Generated_Image_oiti18oiti18oiti.png
+File5[$e]=$HOME/Pictures/Internet/Code_Generated_Imagef.png
+File6[$e]=$HOME/Pictures/Internet/header(2).jpg
+File7[$e]=$HOME/Pictures/Internet/1372790.png
+File8[$e]=$HOME/Pictures/Wallpapers/wall0.png
+File9[$e]=$HOME/Pictures/Wallpapers/Gemini_Generated_Image_vxgkkcvxgkkcvxgk.png
+Name1[$e]=meme_1780479990.jpg
+Name10[$e]=2026-01-14-125006_hyprshot_upscaled_edited$$1.png
+Name2[$e]=____ _.jpg
+Name3[$e]=xubuntu.png
+Name4[$e]=Gemini_Generated_Image_oiti18oiti18oiti.png
+Name5[$e]=Code_Generated_Imagef.png
+Name6[$e]=header(2).jpg
+Name7[$e]=1372790.png
+Name8[$e]=wall0.png
+Name9[$e]=Gemini_Generated_Image_vxgkkcvxgkkcvxgk.png
+
+[SideBar]
+InformationSplitterSizes=439,518
+IsVisible ViewMode=true
+SideBarSplitterSizes=138,801

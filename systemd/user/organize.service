@@ -1,0 +1,6 @@
+[Unit]
+Description=Run organize file sorting
+
+[Service]
+Type=oneshot
+ExecStart=/home/neon/.local/bin/organize run

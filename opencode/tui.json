@@ -1,0 +1,13 @@
+{
+  "plugin": [
+    "oh-my-opencode-slim",
+    "@streetturtle/opencode-open-in",
+    "@streetturtle/opencode-context-progress",
+    "@streetturtle/opencode-recap",
+    "@streetturtle/opencode-session-tokens",
+    "@slkiser/opencode-quota",
+    "@mrgray17/opentoken@latest",
+    "openrtk"
+  ],
+  "$schema": "https://opencode.ai/tui.json"
+}

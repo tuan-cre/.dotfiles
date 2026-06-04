@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "effect": "static",
+  "speed": 1,
+  "brightness": 1,
+  "waveDir": "none",
+  "zones": [
+    "ffffff",
+    "ffffff",
+    "ffffff",
+    "ffffff"
+  ]
+}

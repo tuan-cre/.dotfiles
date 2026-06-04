@@ -1,0 +1,20 @@
+#!/bin/bash
+# meme-capture — select a screen region and save it to your meme collection
+# Uses slurp + grim for the capture, copies to clipboard automatically
+
+MEME_DIR="$HOME/.local/share/memes"
+mkdir -p "$MEME_DIR"
+
+timestamp=$(date +%s)
+file="meme_$timestamp.png"
+
+# Let user select a region; exit cleanly if cancelled
+slurp 2>/dev/null | grim -g - "$MEME_DIR/$file" || {
+    notify-send "Meme Collection" "Capture cancelled"
+    exit 1
+}
+
+# Copy to clipboard with correct MIME type
+wl-copy --type image/png < "$MEME_DIR/$file"
+
+notify-send -i "$MEME_DIR/$file" "Meme Collection" "Captured + copied: $file"

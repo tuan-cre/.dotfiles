@@ -1,0 +1,14 @@
+[Unit]
+Description=Hyprland Network Manager
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.config/hypr-network-manager
+ExecStart=/usr/local/bin/hypr-network-manager --daemon
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

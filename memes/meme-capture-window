@@ -1,0 +1,35 @@
+#!/bin/bash
+# meme-capture-window — capture the window under the mouse cursor
+# Uses Hyprland's cursor position + client geometry for precise window captures
+
+MEME_DIR="$HOME/.local/share/memes"
+mkdir -p "$MEME_DIR"
+
+# Get cursor position
+read -r CURSOR_X CURSOR_Y <<< "$(hyprctl cursorpos | tr -d ',' | awk '{print $1, $2}')"
+
+# Find the window whose bounds contain the cursor, excluding the meme-picker itself
+geometry=$(hyprctl clients -j | jq -r --argjson cx "$CURSOR_X" --argjson cy "$CURSOR_Y" '
+  .[] | select(
+    .class != "meme-picker"
+    and (.mapped // true)
+    and .at[0] <= $cx and .at[0] + .size[0] >= $cx
+    and .at[1] <= $cy and .at[1] + .size[1] >= $cy
+  ) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
+' | head -1)
+
+if [ -z "$geometry" ]; then
+    notify-send "Meme Collection" "No window found under cursor"
+    exit 1
+fi
+
+# Capture the window region
+filename="$MEME_DIR/meme_$(date +%s).png"
+
+if grim -g "$geometry" "$filename"; then
+    wl-copy --type image/png < "$filename"
+    notify-send -i "$filename" "Meme Collection" "Window captured: $geometry"
+else
+    notify-send "Meme Collection" "Failed to capture window"
+    exit 1
+fi

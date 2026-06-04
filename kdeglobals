@@ -1,0 +1,9 @@
+[KDE]
+ShowDeleteCommand=false
+
+[General]
+ColorScheme=VoidVibeTerminal
+
+[PreviewSettings]
+EnableRemoteFolderThumbnail=false
+MaximumRemoteSize=0

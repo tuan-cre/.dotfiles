@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch ~/Downloads and auto-run organize
+
+[Path]
+PathModified=/home/neon/Downloads
+Unit=organize.service
+
+[Install]
+WantedBy=default.target

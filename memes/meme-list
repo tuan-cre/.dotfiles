@@ -1,0 +1,18 @@
+#!/bin/bash
+# meme-list — output formatted meme list for fzf (tab-delimited: display\tfilename)
+MEME_DIR="$HOME/.local/share/memes"
+cd "$MEME_DIR" || exit 1
+
+find . -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' -o -iname '*.webp' -o -iname '*.svg' \) |
+    sed 's|^\./||' |
+    sort |
+while IFS= read -r file; do
+    name="${file%.*}"
+    if [[ "$name" =~ ^meme_([0-9]+)$ ]]; then
+        ts="${BASH_REMATCH[1]}"
+        display=$(date -d "@$ts" "+%b %d %H:%M" 2>/dev/null || echo "$name")
+    else
+        display="$name"
+    fi
+    printf '%s\t%s\n' "$display" "$file"
+done

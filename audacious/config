@@ -1,0 +1,16 @@
+
+[audacious]
+shuffle=TRUE
+
+[audgui]
+filesel_path=/home/neon/Music
+
+[audqt]
+theme=dark
+
+[qtui]
+player_height=507
+player_width=943
+
+[skins]
+skin=/usr/share/audacious/Skins/Default

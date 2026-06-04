@@ -1,0 +1,131 @@
+{
+  "layer": "top",
+  "position": "top",
+  "margin-top": 0,
+  "margin-bottom": -10,
+  "spacing": 0,
+
+  "modules-left": [
+    "hyprland/workspaces",
+    "custom/memory",
+    "cpu",
+    "wlr/taskbar"
+  ],
+
+  "modules-center": [
+    "clock",
+    "custom/gcal"
+  ],
+
+  "modules-right": [
+    "custom/audacious",
+    "tray",
+    "network",
+    "pulseaudio",
+    "battery"
+  ],
+
+  "hyprland/workspaces": {
+    "format": "{name}:{icon}",
+    "format-icons": {
+      "active": "",
+      "default": ""
+    }
+  },
+
+  "clock": {
+  "timezone": "Asia/Ho_Chi_Minh",
+  "tooltip": false,
+  "format": "{:%H:%M:%S - %A, %d}",
+  "interval": 1
+  },
+
+  "custom/gcal": {
+    "exec": "~/.config/waybar/scripts/gcal.sh",
+    "interval": 300,
+    "signal": 1,
+    "return-type": "json",
+    "on-click": "~/.config/waybar/scripts/gcal_click.sh left",
+    "on-click-right": "~/.config/waybar/scripts/gcal_click.sh right",
+    "on-click-middle": "~/.config/waybar/scripts/gcal_click.sh middle"
+  },
+
+  "network": {
+    "format-wifi": "󰤢 ",
+    "format-ethernet": "󰈀 ",
+    "format-disconnected": "󰤠 ",
+    "interval": 5,
+    "tooltip-format": "{essid} ({signalStrength}%)",
+    "on-click": "hypr-network-manager"
+  },
+
+  "cpu": {
+    "interval": 1,
+    "format": " {usage:>2}%",
+    "on-click": "foot -e btop"
+  },
+
+  "custom/memory": {
+    "exec": "~/.config/waybar/scripts/mem_used.sh",
+    "interval": 2,
+    "format": " {}",
+    "tooltip": false
+  },
+
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "",
+    "format-icons": {
+      "default": ["", "", " "]
+    },
+    "on-click": "pavucontrol"
+  },
+
+  "battery": {
+    "format": "{icon} {capacity}%",
+    "format-icons": [
+      "󰁺",
+      "󰁻",
+      "󰁼",
+      "󰁽",
+      "󰁾",
+      "󰁿",
+      "󰂀",
+      "󰂁",
+      "󰂂",
+      "󰁹"
+    ],
+    "on-click": "~/.config/waybar/scripts/battery_click.sh left",
+    "on-click-right": "~/.config/waybar/scripts/battery_click.sh right"
+  },
+
+  "tray": {
+    "icon-size": 15,
+    "spacing": 10,
+    "show-passive-items": false,
+    "reverse-direction": false
+  },
+
+  "wlr/taskbar": {
+    "format": "{icon}",
+    "icon-size": 14,
+    "icon-theme": "Papirus",
+    "all-outputs": false,
+    "tooltip": true,
+    "tooltip-format": "{name}",
+    "on-click": "activate",
+    "on-click-middle": "close"
+  },
+
+  "custom/audacious": {
+    "exec-if": "pgrep -x audacious",
+    "exec": "~/.config/waybar/scripts/audacious_status.sh",
+    "interval": 1,
+    "format": "{}",
+    "tooltip": false,
+    "on-click": "audacious --play-pause",
+    "on-click-right": "hyprctl dispatch 'hl.dsp.focus({ window = \"class:audacious\" })'",
+    "on-scroll-up": "audacious --rew",
+    "on-scroll-down": "audacious --fwd"
+  }
+}

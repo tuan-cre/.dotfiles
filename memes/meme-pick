@@ -1,0 +1,56 @@
+#!/bin/bash
+# meme-pick — browse your meme collection with image previews, copy to clipboard
+# Uses fzf + chafa (Kitty protocol) for inline image previews in foot terminal
+
+MEME_DIR="$HOME/.local/share/memes"
+
+# Self-wrap in foot if not already in a terminal
+if [ ! -t 0 ]; then
+    exec foot --app-id=meme-picker --title="Meme Collection" "$0" "$@"
+fi
+
+mkdir -p "$MEME_DIR"
+cd "$MEME_DIR" || exit 1
+
+list=$(~/.config/memes/meme-list)
+
+if [ -z "$list" ]; then
+    notify-send "Meme Collection" "No memes yet! Use meme-capture or meme-from-clip to add some."
+    exit 0
+fi
+
+selected=$(echo "$list" | fzf \
+    --delimiter=$'\t' \
+    --with-nth=1 \
+    --preview="chafa --symbols=block --fill=block --scale max --align=mid,mid --size=\${FZF_PREVIEW_COLUMNS:-80}x\$((\${FZF_PREVIEW_LINES:-20} - 2)) '$MEME_DIR/{2}'" \
+    --preview-window='right:80%:border-rounded:wrap' \
+    --layout=reverse \
+    --border=rounded \
+    --header='  MEME COLLECTION  ' \
+    --prompt='▸ ' \
+    --bind='enter:accept' \
+    --bind='ctrl-p:execute(imv {2} 2>/dev/null)+abort' \
+    --bind='ctrl-d:execute(~/.config/memes/meme-trash {2})+reload(~/.config/memes/meme-list)' \
+    --bind='ctrl-r:execute(~/.config/memes/meme-rename {2})+reload(~/.config/memes/meme-list)' \
+    --color='bg:#050508,bg+:#282838,fg:#d8d8d8,fg+:#ffffff,hl:#b48ead,hl+:#c7a0c8,pointer:#c7a0c8,info:#5c5c6e,spinner:#5c5c6e,header:#b48ead,prompt:#b48ead,border:#5c5c6e,marker:#c7a0c8' \
+    --height='100%' \
+    --no-info)
+
+[ -z "$selected" ] && exit 0
+
+# Extract path (second field) and display name (first field)
+filepath="$MEME_DIR/${selected##*$'\t'}"
+display_name="${selected%%$'\t'*}"
+
+# Detect MIME type for proper clipboard paste
+case "${filepath,,}" in
+    *.png)  mime="image/png" ;;
+    *.jpg|*.jpeg) mime="image/jpeg" ;;
+    *.gif)  mime="image/gif" ;;
+    *.webp) mime="image/webp" ;;
+    *.svg)  mime="image/svg+xml" ;;
+    *)      mime="application/octet-stream" ;;
+esac
+
+wl-copy --type "$mime" < "$filepath"
+notify-send -i "$filepath" "Meme Collection" "Copied: $display_name"

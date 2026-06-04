@@ -1,0 +1,88 @@
+* {
+  font-family: 'JetBrainsMono Nerd Font', "Symbols Nerd Font", 'FiraCode Nerd Font', monospace;
+  font-size: 13px;
+  min-height: 0;
+  padding: 0;
+  color: #d8d8d8;
+}
+
+#waybar {
+  background: transparent;
+  font-weight: 500;
+}
+
+/* === Module base === */
+#workspaces, #taskbar, #memory, #cpu, #clock, #custom-gcal, #pulseaudio, #network, #battery {
+  padding: 0.3rem 0.7rem;
+  margin: 5px 0;
+}
+
+/* === Shared button styles (workspaces & taskbar) === */
+#workspaces button, #taskbar button {
+  border-radius: 5px;
+  padding: 0.3rem 0.6rem;
+  margin: 0 2px;
+  background: transparent;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+#workspaces button:hover, #taskbar button:hover {
+  background-color: #282838;
+}
+#workspaces button.active, #taskbar button.active {
+  color: #c7a0c8;
+  background-color: #282838;
+  box-shadow: inset 0 0 0 1px #5c5c6e;
+}
+
+/* === Left === */
+#workspaces {
+  padding: 2px;
+  margin-left: 10px;
+  margin-right: 5px;
+}
+#cpu { margin-left: 10px; }
+#taskbar { margin-right: 5px; }
+
+/* === Center === */
+#clock { font-weight: 500; }
+#custom-gcal {
+  color: #d8d8d8;
+  margin-left: 8px;
+}
+
+/* === Right === */
+#pulseaudio { margin: 0 5px; }
+#network.disconnected { color: #5c5c6e; }
+#custom-audacious { margin: 0 10px; }
+#battery { margin-right: 10px; }
+#battery.charging, #battery.warning:not(.charging) { color: #d8d8d8; }
+
+#custom-gcal.not-configured {
+  color: #5c5c6e;
+}
+#custom-gcal.error {
+  color: #bf616a;
+}
+
+/* === Module hover (non-button modules) === */
+#cpu:hover, #memory:hover, #clock:hover, #custom-gcal:hover,
+#pulseaudio:hover, #network:hover, #battery:hover {
+  background-color: #282838;
+}
+
+/* === Tooltip === */
+tooltip {
+  background-color: #050508;
+  padding: 5px 12px;
+  margin: 5px 0;
+  border-radius: 6px;
+  border: 1px solid #5c5c6e;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+}
+
+/* === Tray === */
+#tray { margin-left: 10px; margin-right: 20px; }
+#tray menu { background: #050508; color: #d8d8d8; }
+#tray menu menuitem { color: #d8d8d8; }
+#tray menu menuitem label { color: #d8d8d8; }

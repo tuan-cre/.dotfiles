@@ -1,0 +1,79 @@
+#!/bin/bash
+
+CACHE="$HOME/.cache/config_files.txt"
+SEARCH_DIRS=(
+  "$HOME/.config"
+  "$HOME/.local/share"
+  "/etc"
+)
+EDITOR_CMD="kate"
+
+build_cache() {
+  local exts=(conf toml yaml yml json jsonc lua ini cfg xml desktop service sh env editorconfig)
+  local tmp="${CACHE}.$$"
+  if command -v fd &>/dev/null; then
+    > "$tmp"
+    for dir in "${SEARCH_DIRS[@]}"; do
+      # files with known extensions
+      fd -L -H -t f -d 8 -S -2M \
+        $(printf -- '-e %s ' "${exts[@]}") \
+        -E '.git' -E 'node_modules' \
+        -E 'Cache' -E 'cache' \
+        -E '__pycache__' -E 'logs' \
+        . "$dir" >> "$tmp" 2>/dev/null
+      # files with no extension (e.g. config, Makefile)
+      fd -L -H -t f -d 8 -S -2M '^[^.]+$' "$dir" >> "$tmp" 2>/dev/null
+      # hidden dotfiles with no extension (e.g. .Xresources, .bashrc)
+      fd -L -H -t f -d 8 -S -2M '^\.[^.]+$' "$dir" >> "$tmp" 2>/dev/null
+    done
+  else
+    find -L "${SEARCH_DIRS[@]}" -type f \
+      ! -path "*/.git/*" \
+      ! -path "*/node_modules/*" \
+      ! -path "*/Cache/*" \
+      ! -path "*/cache/*" \
+      ! -path "*/__pycache__/*" \
+      ! -path "*/logs/*" \
+      ! -size +2M \
+      \( $(printf -- '-name "*.%s" -o ' "${exts[@]}") -false \) \
+      2>/dev/null > "$tmp"
+    # add no-extension files (both visible and hidden dotfiles)
+    find -L "${SEARCH_DIRS[@]}" -type f \
+      ! -path "*/.git/*" \
+      ! -path "*/node_modules/*" \
+      ! -path "*/Cache/*" \
+      ! -path "*/cache/*" \
+      ! -path "*/__pycache__/*" \
+      ! -path "*/logs/*" \
+      ! -size +2M \
+      -regextype posix-extended \
+      -regex '.*/(\.[^.]+|[^.]+)$' \
+      2>/dev/null >> "$tmp"
+  fi
+  mv -f "$tmp" "$CACHE"
+}
+
+# If cache is gone, build it synchronously (first run / after wipe)
+if [[ ! -f "$CACHE" ]]; then
+  build_cache
+# If stale, refresh in background — next open gets fresh cache
+elif [[ $(find "$CACHE" -mmin +15 2>/dev/null) ]]; then
+  build_cache &
+fi
+
+# Show menu instantly — cache is guaranteed to exist at this point
+choices=$(sed \
+  -e "s|$HOME/.config/|[cfg] |" \
+  -e "s|$HOME/.local/share/|[local] |" \
+  -e "s|/etc/|[etc] |" \
+  "$CACHE")
+
+selected=$(printf '%s\n' "$choices" | fuzzel --dmenu --prompt="⚙ Config > ")
+[[ -z "$selected" ]] && exit 0
+
+full_path=$(echo "$selected" | sed \
+  -e "s|^\[cfg\] |$HOME/.config/|" \
+  -e "s|^\[local\] |$HOME/.local/share/|" \
+  -e "s|^\[etc\] |/etc/|")
+
+nohup "$EDITOR_CMD" "$full_path" >/dev/null 2>&1 &

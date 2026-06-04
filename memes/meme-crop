@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+"""meme-crop — capture window under cursor and auto-crop to the meme.
+Uses colorfulness + texture analysis to find image content within a window,
+ignoring browser chrome, toolbars, and blank margins."""
+
+import sys
+import os
+import time
+import subprocess
+import json
+from PIL import Image
+import numpy as np
+
+# Grid cell size for content analysis
+CELL_SIZE = 32
+
+# A cell is "interesting" if its colorfulness exceeds this OR grayscale variance exceeds this
+COLOR_THRESHOLD = 15    # Colorfulness (RGB inter-channel deviation)
+VARIANCE_THRESHOLD = 600  # Grayscale variance
+
+# If this fraction of cells is interesting, assume the whole window is content
+MAX_INTERESTING_RATIO = 0.50
+
+# Padding around the detected content bounding box
+PADDING = 15
+
+
+def cell_is_interesting(cell_rgb: np.ndarray) -> bool:
+    """Check if a cell contains image-like content (colorful or high texture)."""
+    # Grayscale variance — catches textured content including B&W
+    gray = np.mean(cell_rgb, axis=2)
+    if np.var(gray) > VARIANCE_THRESHOLD:
+        return True
+
+    # Colorfulness — how much pixels deviate from gray
+    # High for colorful images, low for text/UI
+    mean_rgb = np.mean(cell_rgb, axis=2)
+    color_dev = np.sqrt(
+        (cell_rgb[:, :, 0] - mean_rgb) ** 2 +
+        (cell_rgb[:, :, 1] - mean_rgb) ** 2 +
+        (cell_rgb[:, :, 2] - mean_rgb) ** 2
+    )
+    if np.mean(color_dev) > COLOR_THRESHOLD:
+        return True
+
+    return False
+
+
+def find_content_bbox(img: Image.Image) -> tuple:
+    """Find the bounding box of image content, or return full image bounds."""
+    arr = np.array(img.convert("RGB"), dtype=np.float32)
+    h, w, _ = arr.shape
+
+    cells_y = max(h // CELL_SIZE, 1)
+    cells_x = max(w // CELL_SIZE, 1)
+
+    interesting = np.zeros((cells_y, cells_x), dtype=bool)
+
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            y1 = cy * CELL_SIZE
+            x1 = cx * CELL_SIZE
+            y2 = min(y1 + CELL_SIZE, h)
+            x2 = min(x1 + CELL_SIZE, w)
+            cell = arr[y1:y2, x1:x2]
+            if cell_is_interesting(cell):
+                interesting[cy, cx] = True
+
+    ys, xs = np.where(interesting)
+    total_cells = cells_y * cells_x
+
+    if len(ys) == 0 or (len(ys) / total_cells) > MAX_INTERESTING_RATIO:
+        # No crop needed — either no interesting content or too much content
+        return (0, 0, w, h)
+
+    y1 = int(max(ys.min() * CELL_SIZE - PADDING, 0))
+    x1 = int(max(xs.min() * CELL_SIZE - PADDING, 0))
+    y2 = int(min((ys.max() + 1) * CELL_SIZE + PADDING, h))
+    x2 = int(min((xs.max() + 1) * CELL_SIZE + PADDING, w))
+
+    return (x1, y1, x2, y2)
+
+
+def capture_and_crop(output_path: str) -> bool:
+    """Capture the current window, auto-crop to meme region, save."""
+    # Get cursor position
+    result = subprocess.run(
+        ["hyprctl", "cursorpos"],
+        capture_output=True, text=True
+    )
+    cursor_x, cursor_y = map(int, result.stdout.strip().replace(",", "").split())
+
+    # Find window under cursor
+    result = subprocess.run(
+        ["hyprctl", "clients", "-j"],
+        capture_output=True, text=True
+    )
+    clients = json.loads(result.stdout)
+    target = None
+    for c in clients:
+        if c.get("class") == "meme-picker":
+            continue
+        ax, ay = c["at"]
+        aw, ah = c["size"]
+        if ax <= cursor_x <= ax + aw and ay <= cursor_y <= ay + ah:
+            target = c
+            break
+
+    if not target:
+        print("No window found under cursor")
+        return False
+
+    geometry = f"{target['at'][0]},{target['at'][1]} {target['size'][0]}x{target['size'][1]}"
+
+    # Capture the window
+    temp = "/tmp/meme-capture-temp.png"
+    result = subprocess.run(
+        ["grim", "-g", geometry, temp],
+        capture_output=True
+    )
+    if result.returncode != 0:
+        print("Capture failed")
+        return False
+
+    # Open and analyze
+    img = Image.open(temp)
+    bbox = find_content_bbox(img)
+
+    # Crop and save
+    cropped = img.crop(bbox)
+    cropped.save(output_path, "PNG")
+    os.unlink(temp)
+
+    print(f"Cropped to {bbox[2]-bbox[0]}x{bbox[3]-bbox[1]} from {img.width}x{img.height}")
+
+    # Copy to clipboard
+    subprocess.run(["wl-copy", "--type", "image/png"], input=open(output_path, "rb").read())
+
+    # Notify
+    subprocess.run(["notify-send", "-i", output_path, "Meme Collection", "Captured and cropped"])
+
+    return True
+
+
+if __name__ == "__main__":
+    out_dir = os.path.expanduser("~/.local/share/memes")
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, f"meme_{int(time.time())}.png")
+    if not capture_and_crop(out_path):
+        sys.exit(1)

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://unpkg.com/oh-my-opencode-slim@latest/oh-my-opencode-slim.schema.json",
+  "preset": "zero",
+  "version": "1.1.1",
+  "presets": {
+    "free": {
+      "orchestrator": {
+        "model": "deepseek/deepseek-v4-flash",
+        "variant": "low",
+        "skills": ["*"],
+        "mcps": ["*", "!context7"]
+      },
+      "oracle": {
+        "model": "google/gemini-2.0-flash",
+        "variant": "med",
+        "skills": ["simplify"]
+      },
+      "librarian": {
+        "model": "openrouter/openai/gpt-oss-120b:free",
+        "variant": "low",
+        "mcps": ["websearch", "context7", "grep_app"]
+      },
+      "explorer": {
+        "model": "openrouter/openai/gpt-oss-120b:free",
+        "variant": "low"
+      },
+      "designer": {
+        "model": "google/gemini-2.0-flash",
+        "variant": "med"
+      },
+      "fixer": {
+        "model": "openrouter/openai/gpt-oss-120b:free",
+        "variant": "med"
+      }
+    },
+    "cheap": {
+       "orchestrator": {
+        "model": "opencode/big-pickle",
+        "variant": "low",
+        "skills": ["*"],
+        "mcps": ["*", "!context7"]
+      },
+      "oracle": {
+        "model": "opencode/deepseek-v4-flash-free",
+        "variant": "med",
+        "skills": ["simplify"]
+      },
+      "librarian": {
+        "model": "opencode/deepseek-v4-flash-free",
+        "variant": "low",
+        "mcps": ["websearch", "context7", "grep_app"]
+      },
+      "explorer": {
+        "model": "opencode/deepseek-v4-flash-free",
+        "variant": "low"
+      },
+      "designer": {
+        "model": "google/gemini-2.5-flash",
+        "variant": "med"
+      },
+      "fixer": {
+        "model": "opencode/big-pickle",
+        "variant": "med"
+      }
+    },
+  "zero": {
+    "orchestrator": {
+      "model": "nvidia/stepfun-ai/step-3.7-flash",
+      "variant": "low",
+      "skills": ["*"],
+      "mcps": ["*", "!context7"]
+    },
+    "oracle": {
+      "model": "nvidia/stepfun-ai/step-3.7-flash",
+      "variant": "med",
+      "skills": ["simplify"]
+    },
+    "librarian": {
+      "model": "nvidia/stepfun-ai/step-3.7-flash",
+      "variant": "low",
+      "mcps": ["websearch", "context7", "grep_app"]
+    },
+    "explorer": {
+      "model": "nvidia/stepfun-ai/step-3.7-flash",
+      "variant": "low"
+    },
+    "designer": {
+      "model": "nvidia/stepfun-ai/step-3.7-flash",
+      "variant": "med"
+    },
+    "fixer": {
+      "model": "nvidia/stepfun-ai/step-3.7-flash",
+      "variant": "med"
+    }
+  }
+  }
+}

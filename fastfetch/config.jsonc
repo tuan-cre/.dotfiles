@@ -1,0 +1,62 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+  "logo": {
+    "type": "file",
+    "source": "~/.config/fastfetch/aleph1.txt",
+    "color": {
+      "1": "#5c5c6e",
+      "2": "#6e5a7e",
+      "3": "#8a6e9e",
+      "4": "#a88aae",
+      "5": "#b48ead",
+      "6": "#c7a0c8"
+    },
+    "padding": {
+      "left": 3,
+      "right": 2,
+    }
+  },
+  "display": {
+    "separator": "",
+    "color": {
+      "keys": "#5c5c6e",
+      "title": "#b48ead",
+      "separator": "#b48ead"
+    },
+    "key": {
+      "width": 12,
+      "type": "string"
+    }
+  },
+  "modules": [
+    "title",
+    "separator",
+    "os",
+    "host",
+    "kernel",
+    //"uptime",
+    //{ "type": "command", "key": "Installed", "text": "inst=$(stat -c %W /) && printf '%s ~ %d days' \"$(date -d @$inst '+%b %d, %Y (%Z)')\" $(( ($(date +%s) - $inst) / 86400 ))" },
+    "packages",
+    "shell",
+    { "type": "display", "key": "Display" },
+    "de",
+    "wm",
+    "wmtheme",
+    "theme",
+    "icons",
+    "font",
+    //"cursor",
+    { "type": "terminal", "format": "foot" },
+    "terminalfont",
+    "cpu",
+    "gpu",
+    "memory",
+    "swap",
+    { "type": "disk", "key": "Disk" },
+    // { "type": "localip", "key": "IP" },
+    { "type": "battery", "key": "Battery" },
+    "poweradapter",
+    //"locale",
+    "break"
+  ]
+}
