@@ -3,7 +3,7 @@
 MEME_DIR="$HOME/.local/share/memes"
 cd "$MEME_DIR" || exit 1
 
-find . -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' -o -iname '*.webp' -o -iname '*.svg' \) |
+find . -maxdepth 1 -type f -iname '*.png' |
     sed 's|^\./||' |
     sort |
 while IFS= read -r file; do

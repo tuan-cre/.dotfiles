@@ -42,15 +42,6 @@ selected=$(echo "$list" | fzf \
 filepath="$MEME_DIR/${selected##*$'\t'}"
 display_name="${selected%%$'\t'*}"
 
-# Detect MIME type for proper clipboard paste
-case "${filepath,,}" in
-    *.png)  mime="image/png" ;;
-    *.jpg|*.jpeg) mime="image/jpeg" ;;
-    *.gif)  mime="image/gif" ;;
-    *.webp) mime="image/webp" ;;
-    *.svg)  mime="image/svg+xml" ;;
-    *)      mime="application/octet-stream" ;;
-esac
-
-wl-copy --type "$mime" < "$filepath"
+# All memes are PNG — always use image/png for clipboard
+wl-copy --type image/png < "$filepath"
 notify-send -i "$filepath" "Meme Collection" "Copied: $display_name"

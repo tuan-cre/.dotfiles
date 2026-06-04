@@ -33,46 +33,29 @@ def read_message() -> dict:
     return json.loads(data.decode("utf-8"))
 
 
-def save_image(mime_type: str, data_b64: str) -> dict:
-    """Decode base64 image data and save to collection.
-    Converts webp to PNG for better compatibility with the meme tools."""
-
-    ext = mime_type.split("/")[-1]
-    if ext == "jpeg":
-        ext = "jpg"
-    elif ext not in ("png", "jpg", "gif", "webp", "svg"):
-        ext = "png"
+def save_image(data_b64: str) -> dict:
+    """Decode base64 image data, convert to PNG, and save to collection."""
 
     os.makedirs(MEME_DIR, exist_ok=True)
 
     try:
         image_data = base64.b64decode(data_b64)
 
-        # Convert webp to PNG for better tool compatibility
-        if ext == "webp":
-            img = Image.open(io.BytesIO(image_data))
-            buf = io.BytesIO()
-            img.save(buf, "PNG")
-            image_data = buf.getvalue()
-            ext = "png"
+        # Convert to PNG for uniform format — PIL handles all raster formats
+        img = Image.open(io.BytesIO(image_data))
+        buf = io.BytesIO()
+        img.save(buf, "PNG")
+        image_data = buf.getvalue()
 
-        filename = f"meme_{int(time.time())}.{ext}"
+        filename = f"meme_{int(time.time())}.png"
         filepath = os.path.join(MEME_DIR, filename)
 
         with open(filepath, "wb") as f:
             f.write(image_data)
 
-        # Copy to clipboard
-        mime_map = {
-            "png": "image/png",
-            "jpg": "image/jpeg",
-            "gif": "image/gif",
-            "webp": "image/webp",
-            "svg": "image/svg+xml",
-        }
-        clipboard_mime = mime_map.get(ext, "image/png")
+        # Copy to clipboard as PNG
         subprocess.run(
-            ["wl-copy", "--type", clipboard_mime],
+            ["wl-copy", "--type", "image/png"],
             input=image_data,
             check=False,
         )
@@ -100,10 +83,7 @@ def main():
     action = message.get("action", "")
 
     if action == "save":
-        result = save_image(
-            message.get("mimeType", "image/png"),
-            message.get("data", ""),
-        )
+        result = save_image(message.get("data", ""))
         send_message(result)
     elif action == "ping":
         send_message({"success": True, "pong": True})

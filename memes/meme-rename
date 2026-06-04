@@ -9,7 +9,6 @@ if [ -z "$file" ] || [ ! -f "$file" ]; then
     exit 1
 fi
 
-ext="${file##*.}"
 echo ""
 read -e -p " New name: " -r name </dev/tty
 
@@ -21,5 +20,5 @@ fi
 # Sanitize: replace spaces with underscores
 name="${name// /_}"
 
-mv -i "$file" "${name}.${ext}" && \
-    notify-send -i "${name}.${ext}" "Meme Collection" "Renamed → ${name}.${ext}"
+mv -i "$file" "${name}.png" && \
+    notify-send -i "${name}.png" "Meme Collection" "Renamed → ${name}.png"

@@ -13,17 +13,17 @@ refresh_waybar() {
 
 case "$1" in
   agenda|left)
-    foot --title="gcalcli" -- python3 "$TUI"
+    foot --title="gcalcli" --window-size-chars=85x30 -- python3 "$TUI"
     refresh_waybar
     ;;
   calendar|right)
-    foot --title="gcalcli" sh -c "$GCALCLI --lineart fancy calm; echo; read -p 'Press Enter to close...'"
+    foot --title="gcalcli" --window-size-chars=85x30 sh -c "$GCALCLI --lineart fancy calm; echo; read -p 'Press Enter to close...'"
     ;;
   browser|middle)
     helium-browser --app=https://calendar.google.com
     ;;
   *)
-    foot --title="gcalcli" -- python3 "$TUI"
+    foot --title="gcalcli" --window-size-chars=85x30 -- python3 "$TUI"
     refresh_waybar
     ;;
 esac

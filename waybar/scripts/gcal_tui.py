@@ -7,6 +7,7 @@ Arrow keys to navigate, q to quit.
 
 import calendar
 import curses
+import functools
 import os
 import subprocess
 import sys
@@ -316,13 +317,32 @@ def read_line(stdscr, y, x, max_w):
 
 
 def quick_add_prompt(stdscr, year, month, day):
-    """Single-line prompt for gcalcli quick add. Returns full text or None."""
-    height, width = stdscr.getmaxyx()
-    prompt = " Quick add: "
-    y = min(height - 2, 18)
-    x = 2
-    max_w = max(width - x - len(prompt) - 4, 20)
+    """Enhanced prompt for event creation with date context and defaults.
 
+    Shows the selected date, a hint line with example format, accepts natural
+    language input, and appends the date for reliable placement.
+    Returns full text string or None on cancel.
+    """
+    height, width = stdscr.getmaxyx()
+
+    day_date = date(year, month, day)
+    date_str = day_date.strftime("%a, %b %d")  # e.g. "Mon, Jun 4"
+
+    prompt = f" Add event for {date_str}: "
+    y = min(height - 3, 17)
+    x = 2
+    max_w = max(width - x - len(prompt) - 4, 25)
+
+    # Hint line — show example format
+    hint = " e.g. Lunch @ 12pm with John  (Esc to cancel)"
+    stdscr.attron(curses.color_pair(C_HELP))
+    try:
+        stdscr.addstr(y - 1, x, hint[:width - x - 1])
+    except curses.error:
+        pass
+    stdscr.attroff(curses.color_pair(C_HELP))
+
+    # Input line with reversed background
     stdscr.attron(curses.A_REVERSE)
     stdscr.addstr(y, 0, " " * width)
     stdscr.attroff(curses.A_REVERSE)
@@ -337,16 +357,19 @@ def quick_add_prompt(stdscr, year, month, day):
     curses.curs_set(0)
     stdscr.timeout(200)
 
-    if not text:
+    if not text or not text.strip():
         return None
-    return f"{calendar.month_abbr[month]} {day} {text}"
 
-def delete_event_prompt(stdscr, events, day, year, month):
+    text = text.strip()
+    month_abbr = calendar.month_abbr[month]
+    return f"{text} on {month_abbr} {day}"
+
+def delete_event_prompt(stdscr, events, day, year, month, primary_cal=None):
     """Prompt user to select an event on the given day to delete.
-    Returns True if deletion attempted, False otherwise."""
+    Returns status string on attempt, or None if cancelled/no action."""
     day_events = events.get(day, [])
     if not day_events:
-        return False
+        return "No events to delete"
     height, width = stdscr.getmaxyx()
     prompt = " Delete event #: "
     y = min(height - 2, 18)
@@ -376,49 +399,35 @@ def delete_event_prompt(stdscr, events, day, year, month):
     if ord('1') <= key <= ord(str(min(9, len(day_events)))):
         idx = key - ord('1')
         _, title, _ = day_events[idx]
-        # run gcalcli delete — search by title on the target date only
+        # build gcalcli delete command
         day_str = f"{year:04d}-{month:02d}-{day:02d}"
+        next_day = date(year, month, day) + timedelta(days=1)
+        end_str = next_day.strftime("%Y-%m-%d")
+        cmd = [GCALCLI, "--nocolor", "delete", "--iamaexpert"]
+        cal = primary_cal or _get_primary_cal()
+        if cal:
+            cmd += ["--calendar", cal]
+        cmd += [title, day_str, end_str]
         try:
             result = subprocess.run(
-                [GCALCLI, "--nocolor", "delete", "--iamaexpert",
-                 title, day_str, day_str],
-                capture_output=True, text=True, timeout=15,
+                cmd, capture_output=True, text=True, timeout=15,
+                stdin=subprocess.DEVNULL,
             )
-            # Only consider it deleted if gcalcli confirms
-            if "Deleted!" not in result.stdout:
-                return False
-        except Exception:
-            return False
-        return True
-    return False
-    """Single-line prompt for gcalcli quick add. Returns full text or None."""
-    height, width = stdscr.getmaxyx()
-    prompt = " Quick add: "
-    y = min(height - 2, 18)
-    x = 2
-    max_w = max(width - x - len(prompt) - 4, 20)
-
-    stdscr.attron(curses.A_REVERSE)
-    stdscr.addstr(y, 0, " " * width)
-    stdscr.attroff(curses.A_REVERSE)
-    stdscr.attron(curses.color_pair(C_HEADER) | curses.A_BOLD)
-    stdscr.addstr(y, x, prompt)
-    stdscr.attroff(curses.color_pair(C_HEADER) | curses.A_BOLD)
-    stdscr.refresh()
-
-    stdscr.timeout(-1)
-    curses.curs_set(2)
-    text = read_line(stdscr, y, x + len(prompt), max_w)
-    curses.curs_set(0)
-    stdscr.timeout(200)
-
-    if not text:
-        return None
-    return f"{calendar.month_abbr[month]} {day} {text}"
+            if "Deleted!" in result.stdout:
+                return "✔ Deleted"
+            if result.stderr.strip():
+                return f"✗ {result.stderr.strip()[-40:]}"
+            return "✗ Delete failed"
+        except subprocess.TimeoutExpired:
+            return "✗ Timed out"
+        except Exception as e:
+            return f"✗ {e}"
+    return None  # cancelled
 
 
+@functools.lru_cache(maxsize=1)
 def _get_primary_cal():
-    """Return the primary calendar email from gcalcli list."""
+    """Return the primary calendar email from gcalcli list (cached)."""
     try:
         r = subprocess.run(
             [GCALCLI, "list", "--nocolor"],
@@ -436,7 +445,7 @@ def _get_primary_cal():
 def _quick_add_bg(cache, ym, text, result_list, calendar):
     """Run gcalcli quick in a thread, store (success, msg) in result_list."""
     try:
-        cmd = [GCALCLI, "quick"]
+        cmd = [GCALCLI, "quick", "--default-reminders"]
         if calendar:
             cmd += ["--calendar", calendar]
         cmd.append(text)
@@ -498,10 +507,9 @@ def _main(stdscr):
     # Shared cache: (year, month) -> events dict
     events_cache = {}
 
-    # ── Initial fetch ──
-    events_cache[(year, month)] = fetch_events(year, month)
-
-    # ── Pre-fetch adjacent months in background ──
+    # ── Fire all fetches in background — show calendar immediately ──
+    loading_ym = (year, month)
+    start_bg_fetch(events_cache, year, month)
     for dy in [-1, 1]:
         ny, nm = year, month + dy
         if nm > 12:
@@ -511,14 +519,13 @@ def _main(stdscr):
         start_bg_fetch(events_cache, ny, nm)
 
     # ── State ──
-    loading_ym = None
     spinner_chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
     sp_idx = 0
     status_msg = None
     status_color = C_HELP
     create_result = []  # list: thread stores (msg, color) here when done
     creating_now = False  # True while gcalcli quick is running in bg
-    primary_cal = _get_primary_cal()  # used for --calendar flag
+    primary_cal = None  # fetched lazily on first 'n' press
 
     stdscr.timeout(200)
 
@@ -530,10 +537,21 @@ def _main(stdscr):
         if height < 18 or width < 70:
             msg = f"Terminal too small — need 70×18, got {width}×{height}"
             stdscr.addstr(0, 0, msg)
-            stdscr.addstr(2, 0, "Press any key to quit...")
+            stdscr.addstr(2, 0, "Resize terminal or press q to quit")
             stdscr.refresh()
-            stdscr.getch()
-            break
+            # Block until resize or quit (override main loop timeout)
+            stdscr.timeout(-1)
+            while True:
+                key = stdscr.getch()
+                if key == ord('q'):
+                    return
+                h2, w2 = stdscr.getmaxyx()
+                if h2 >= 18 and w2 >= 70:
+                    height, width = h2, w2
+                    break
+            stdscr.timeout(200)
+            stdscr.erase()
+            continue
 
         # Check if background fetch completed
         if loading_ym and loading_ym in events_cache:
@@ -621,7 +639,9 @@ def _main(stdscr):
             loading_ym = (year, month)
 
         elif key == ord('n') and not creating_now:
-            # quick add new event
+            # quick add new event — lazy fetch primary calendar
+            if primary_cal is None:
+                primary_cal = _get_primary_cal()
             raw = quick_add_prompt(stdscr, year, month, selected_day)
             if raw:
                 creating_now = True
@@ -634,14 +654,18 @@ def _main(stdscr):
                 t.start()
         elif key == ord('d'):
             # delete selected event if any
-            if delete_event_prompt(stdscr, events, selected_day, year, month):
-                status_msg = "Deleted event"
-                status_color = C_TODAY
-                # refresh cache for current month
+            del_msg = delete_event_prompt(stdscr, events, selected_day,
+                                          year, month, primary_cal)
+            if del_msg and del_msg.startswith("✔"):
+                status_msg = del_msg
+                status_color = C_EVENT
                 if (year, month) in events_cache:
                     del events_cache[(year, month)]
                 start_bg_fetch(events_cache, year, month)
                 loading_ym = (year, month)
+            elif del_msg:
+                status_msg = del_msg
+                status_color = C_TODAY
 
         elif key == curses.KEY_LEFT:
             month -= 1
@@ -679,3 +703,10 @@ if __name__ == "__main__":
         curses.wrapper(main)
     except KeyboardInterrupt:
         sys.exit(0)
+    except Exception:
+        import traceback
+        tb = traceback.format_exc()
+        with open("/tmp/gcal_tui_error.log", "w") as _f:
+            _f.write(tb)
+        print("gcal_tui.py crashed — see /tmp/gcal_tui_error.log", file=sys.stderr)
+        sys.exit(1)
